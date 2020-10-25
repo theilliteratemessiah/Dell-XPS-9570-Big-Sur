@@ -20,6 +20,8 @@
 # Dell XPS 9570 - Big Sur and Catalina
 This Hackintosh configuration is proven on the **Dell XPS 9570 15" 4K** and is based on **OpenCore**.
 It is suitable for use as a daily driver, even with Big Sur betas.
+Tested up to Big Sur Beta 10.
+For FHD display use the [config_fhd.plist](/blob/main/EFI/OC/config_fhd.plist) file and rename it to config.plist under /EFI/OC/.
 
 # Disclaimer
 
