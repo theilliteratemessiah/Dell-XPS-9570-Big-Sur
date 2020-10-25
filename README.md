@@ -6,8 +6,10 @@
 5. [Preparation](#preparation)
 	a. [Catalina](#for-catalina)
 	b. [Big Sur](#for-big-sur)
-6. [UEFI Configuration](#uefi-configuration)
-7. [Installation](#installation)
+6. [EFI](#efi)
+7. [UEFI Configuration](#uefi-configuration)
+8. [Installation](#installation)
+9. [Post-installation](#post-installation)
 # Dell XPS 9570 - Big Sur and Catalina
 
 This Hackintosh configuration is proven on the **Dell XPS 9570 15"** and is based on **OpenCore**.
@@ -95,12 +97,51 @@ sudo /Applications/Install \ macOS\ Big\ Sur\ Beta.app/Contents/Resources/create
 12. When prompted type a “y,” and press the _Return_ key on the keyboard to submit.
 (Terminal may ask for access to files on the removable volume. Click 'OK' to approve access.)
 
-Have patience as this process can take a long time. (approximately 40 minutes)
+Have patience as this process can take a long time. (as much as 40 minutes, or perhaps even longer if using a virtual machine.)
+
+# EFI 
+Download this repository on your computer. Use a tool that permits mounting the EFI folder and copy the contents of this repository to the EFI folder of the USB drive.
+
+### General instructions (post-install)
+1. Launch a new Terminal window by going to Applications → Utilities → Terminal and type:
+```
+diskutil list
+```
+The output should look something like this on a SSD with 256 GB storage:
+```
+/dev/disk0
+ #: TYPE                     NAME          SIZE       IDENTIFIER
+ 0: GUID_partition_scheme                  *251.0 GB  disk0
+ 1: EFI                                    209.7 MB   disk0s1
+ 2: Apple_HFS                Macintosh HD  250.1 GB   disk0s2
+ 3: Apple_Boot               Recovery HD   650.0 MB   disk0s3
+```
+Note the volume identifier of the EFI - disk0s1 in this example.
+
+2. Create a mount point.
+```
+mkdir /Volumes/efi
+```
+3. Mount the EFI partition at the efi mount point by typing in
+```
+sudo mount -t msdos /dev/disk0s1 /Volumes/efi
+```
+4. Copy the contents of this repository to the EFI volume.
 
 # UEFI Configuration
 1. Disable Secure Boot
 2. Change your SATA Operation to AHCI mode
 (Windows 10 will become inoperable after this step.)
 3. Disable the SD Card reader
+The following are optional:
+4. Disable TPM 2.0.
+5. Disable VT-d under visualization.
+6. Disable Fast Boot.
+
+> **If the USB drive is not shown during the installation phase**: Enable Legacy ROM by navigating to Boot Sequence and then changing from UEFI mode to Legacy mode.
 
 # Installation
+
+Press F12 to launch the installer from the external USB drive and follow the instructions.
+
+# Post-installation
