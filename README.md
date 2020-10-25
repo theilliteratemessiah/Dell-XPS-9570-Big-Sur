@@ -1,3 +1,6 @@
+```diff
+- This is a work in progress. Please do not report any issues or pull code just yet.
+```
 # Table of contents
 1. [Introduction](#dell-xps-9570---big-sur-and-catalina)
 2. [Disclaimer](#disclaimer)
@@ -10,9 +13,9 @@
 7. [UEFI Configuration](#uefi-configuration)
 8. [Installation](#installation)
 9. [Post-installation](#post-installation)
-# Dell XPS 9570 - Big Sur and Catalina
 
-This Hackintosh configuration is proven on the **Dell XPS 9570 15"** and is based on **OpenCore**.
+# Dell XPS 9570 - Big Sur and Catalina
+This Hackintosh configuration is proven on the **Dell XPS 9570 15" 4K** and is based on **OpenCore**.
 It is suitable for use as a daily driver, even with Big Sur betas.
 
 # Disclaimer
@@ -54,8 +57,6 @@ Follow the instructions to configure your own Serial Number, SMUUID, etc.
 11. **Unlock with Apple Watch**: Working and tested with Apple Watch 1 and Apple Watch 6.
 12. **Backup wirelessly to a Time Capsule**: Working as expected.
 
-
-
 ## What will not work
 1. **Nvidia GPU**: Apple dropped support for Nvidia GPUs with the release of Mojave. This has been disabled in the configuration and it is advised not to enable it.
 2. **Killer Wifi/Bluetooth**
@@ -70,6 +71,8 @@ What is needed:
 1. An Apple computer or a virtual machine with macOS
 2. A USB drive with 16 GB (or more) storage
 3. A copy of the installer
+4. Python 3 
+
 Connect your USB drive to the computer/virtual machine.
 ### For **Catalina**:
 1. Follow the instructions [here](#what-will-not-work) to prepare a USB drive.
@@ -99,36 +102,10 @@ sudo /Applications/Install \ macOS\ Big\ Sur\ Beta.app/Contents/Resources/create
 
 Have patience as this process can take a long time. (as much as 40 minutes, or perhaps even longer if using a virtual machine.)
 
-# EFI 
+## EFI 
 Download this repository on your computer. Use a tool that permits mounting the EFI folder and copy the contents of this repository to the EFI folder of the USB drive.
 
-### General instructions (post-install)
-1. Launch a new Terminal window by going to Applications → Utilities → Terminal and type:
-```
-diskutil list
-```
-The output should look something like this on a SSD with 256 GB storage:
-```
-/dev/disk0
- #: TYPE                     NAME          SIZE       IDENTIFIER
- 0: GUID_partition_scheme                  *251.0 GB  disk0
- 1: EFI                                    209.7 MB   disk0s1
- 2: Apple_HFS                Macintosh HD  250.1 GB   disk0s2
- 3: Apple_Boot               Recovery HD   650.0 MB   disk0s3
-```
-Note the volume identifier of the EFI - disk0s1 in this example.
-
-2. Create a mount point.
-```
-mkdir /Volumes/efi
-```
-3. Mount the EFI partition at the efi mount point by typing in
-```
-sudo mount -t msdos /dev/disk0s1 /Volumes/efi
-```
-4. Copy the contents of this repository to the EFI volume.
-
-# UEFI Configuration
+## UEFI Configuration
 1. Disable Secure Boot
 2. Change your SATA Operation to AHCI mode
 (Windows 10 will become inoperable after this step.)
@@ -140,8 +117,83 @@ The following are optional:
 
 > **If the USB drive is not shown during the installation phase**: Enable Legacy ROM by navigating to Boot Sequence and then changing from UEFI mode to Legacy mode.
 
+## Special consideration for 4K screen
+With Big Sur the 4K variant of Dell XPS 9570 may lead to blank screen during installation. If an external display is connected then it works.
+
+1. Save this to a file and name it `edid.py` on your Desktop.
+```
+from subprocess import check_output
+from base64 import b64decode, b64encode
+
+def shout(cmd) -> str:
+    '''sh cmd then return output
+    '''
+    return check_output(cmd, shell=True, encoding='utf-8').strip()
+
+edid = shout('ioreg -lw0 | grep -i "IODisplayEDID"')
+edid = edid.split('<')[1].split('>')[0]
+edid = edid[:108] + 'a6a6' + edid[112:]
+data = [int(edid[i:i+2], 16) for i in range(0, len(edid), 2)]
+checksum = hex(256 - sum(data[:-1]) % 256)[2:]
+data[-1] = int(checksum, 16)
+data = b64encode(bytes(data)).decode('utf-8')
+print(data)
+```
+2. Run the following commands in Terminal:
+```
+cd Desktop/
+python3 edid.py
+```
+3. Open the Config.Plist file with a text editor
+4. The go to `DeviceProperties > Add > PciRoot(0x0)/Pci(0x2,0x0)` add a new key named `AAPL00,override-no-connect` and put the data from step 2 in `<data></data>`.
 # Installation
 
-Press F12 to launch the installer from the external USB drive and follow the instructions.
+Press F12 to launch the installer from the external USB drive and perform installation as you would on a regular Apple computer.
 
 # Post-installation
+### Copy EFI files (Required)
+To permit computer boot from the internal storage follow these steps:
+1. Mount the EFI of the local SSD:
+`sudo diskutil mount disk0s1`
+2. Copy the EFI data from this repository.
+
+### CPU (Optional)
+#### 1. Kext generation
+Use the script [one-key-cpufriend](https://github.com/stevezhengshiqi/one-key-cpufriend) from the `tools` folder to generate your own `CPUFriendDataProvider.kext`.
+#### 2. Underclocking 
+Undervolting your CPU can reduce heat, improve performance, and provide longer battery life. However, if done incorrectly, it may cause an unstable system. The  `tools`  folder contains a patched version of  [VoltageShift](https://github.com/sicreative/VoltageShift).
+
+Using  `./voltageshift offset <CPU> <GPU> <CPUCache>`  you can adjust the voltage offset for the CPU, GPU, and cache. Safe starting values are  `-100, -75, -100`. From there you can start gradually lowering the values until your system gets unstable.
+
+# Known issues and fixes
+### 1. iMessage not working
+You need to generate your own serial numbers. 
+
+Use [Hackintool](https://www.tonymacx86.com/threads/release-hackintool-v3-x-x.254559/) and:
+1. Go to the “Serial“ tab and make sure model is set to `MacBookPro15,2`
+2. Use the barcode-with-apple button to check your generated serial numbers. If the website tells you that the serial number isn't valid, everything is fine. Otherwise, you have to generate a new set.
+3. Next you will have to copy the following values from Hackintool to your  `config.plist`:
+-   Serial Number ->  `Root/PlatformInfo/Generic/SystemSerialNumber`
+-   Board Number ->  `Root/PlatformInfo/Generic/MLB`
+-   SmUUID ->  `Root/PlatformInfo/Generic/SystemUUID`
+
+Reboot and Apple services should work.
+
+If they don't, follow  [this in-depth guide](https://dortania.github.io/OpenCore-Post-Install/universal/iservices.html). It goes deeper into ROM, clearing NVRAM, clearing Keychain (missing this step might cause major issues), and much more.
+
+### 2. Trackpad not working after fresh boot
+This very rarely crops up and can be remedied with a system restart.
+1. Launch Terminal.
+2. Type ``` sudo reboot ``` and press the return key.
+3. Provide your password and let the computer restart.
+
+> **Also worth noting** 
+> The “PrintScreen“ button toggle the trackpad.
+
+# References
+Worth mentioning the hard work of:
+1. [Jaro Meyer](https://github.com/jaromeyer/XPS9570-Catalina)
+2. [Luletter Soul](https://github.com/LuletterSoul/Dell-XPS15-9570-macOS)
+3. [Bavarian Cake](https://github.com/bavariancake/XPS9570-macOS)
+4. [One-Key-CPUFriend](https://github.com/stevezhengshiqi/one-key-cpufriend)
+5. [VoltageShift](https://github.com/sicreative/VoltageShift)
