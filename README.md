@@ -4,6 +4,10 @@
 3. [What works](#what-works)
 4. [What doesn't work](#what-will-not-work)
 5. [Preparation](#preparation)
+	a. [Catalina](#for-catalina)
+	b. [Big Sur](#for-big-sur)
+6. [UEFI Configuration](#uefi-configuration)
+7. [Installation](#installation)
 # Dell XPS 9570 - Big Sur and Catalina
 
 This Hackintosh configuration is proven on the **Dell XPS 9570 15"** and is based on **OpenCore**.
@@ -23,8 +27,11 @@ It is assumed that the reader has a basic understanding of operating system inst
 		* GPU: Intel UHD Graphics 630
 * The stock wireless and bluetooth card needs to be replaced.
 
+> 
 > **Learn from others mistakes:** Do not open the Config.PLIST file with 'Clover Configurator' or like me you will lose an afternoon in diagnostics and Time Machine restore.
-
+> 
+> **This is one way street:** The Windows 10 will be removed and all data will be lost. Make appropriate backups - Windows 10 recovery drive (USB, 16GB) and backup your files.
+> 
 # What works
 ### Hardware 
 1. **Intel iGPU** is supported with:
@@ -89,5 +96,11 @@ sudo /Applications/Install \ macOS\ Big\ Sur\ Beta.app/Contents/Resources/create
 (Terminal may ask for access to files on the removable volume. Click 'OK' to approve access.)
 
 Have patience as this process can take a long time. (approximately 40 minutes)
+
+# UEFI Configuration
+1. Disable Secure Boot
+2. Change your SATA Operation to AHCI mode
+(Windows 10 will become inoperable after this step.)
+3. Disable the SD Card reader
 
 # Installation
