@@ -1,6 +1,3 @@
-```diff
-- This is a work in progress. Please do not report any issues or pull code just yet.
-```
 # Table of contents
 1. [Introduction](#dell-xps-9570---big-sur-and-catalina)
 2. [Disclaimer](#disclaimer)
@@ -11,8 +8,14 @@
 	b. [Big Sur](#for-big-sur)
 6. [EFI](#efi)
 7. [UEFI Configuration](#uefi-configuration)
-8. [Installation](#installation)
-9. [Post-installation](#post-installation)
+8. [Special consideration for 4K screen](#special-consideration-for-4k-screen)
+9. [Installation](#installation)
+10. [Post-installation](#post-installation)
+	a. [Copy EFI](#copy-efi-files-required)
+	b. [CPU](#cpu-optional)
+11. [Known issues and fixes](#known-issues-and-fixes)
+	a. [iMessage not working](#1-imessage-not-working)
+	b. [Trackpad not working](#2-trackpad-not-working-after-fresh-boot)
 
 # Dell XPS 9570 - Big Sur and Catalina
 This Hackintosh configuration is proven on the **Dell XPS 9570 15" 4K** and is based on **OpenCore**.
